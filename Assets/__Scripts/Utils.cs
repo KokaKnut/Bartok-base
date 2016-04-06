@@ -34,14 +34,14 @@ public class Utils : MonoBehaviour {
 		// Create an empty Bounds b
 		Bounds b = new Bounds(Vector3.zero, Vector3.zero);
 		// If this GameObject has a Renderer Component...
-		if (go.renderer != null) {
+		if (go.GetComponent<Renderer>() != null) {
 			// Expand b to contain the Renderer's Bounds
-			b = BoundsUnion(b, go.renderer.bounds);
+			b = BoundsUnion(b, go.GetComponent<Renderer>().bounds);
 		}
 		// If this GameObject has a Collider Component...
-		if (go.collider != null) {
+		if (go.GetComponent<Collider>() != null) {
 			// Expand b to contain the Collider's Bounds
-			b = BoundsUnion(b, go.collider.bounds);
+			b = BoundsUnion(b, go.GetComponent<Collider>().bounds);
 		}
 		// Iterate through each child of this gameObject.transform
 		foreach( Transform t in go.transform ) {
@@ -222,8 +222,8 @@ public class Utils : MonoBehaviour {
 	// Returns a list of all Materials in this GameObject or its children
 	static public Material[] GetAllMaterials( GameObject go ) {
 		List<Material> mats = new List<Material>();
-		if (go.renderer != null) {
-			mats.Add(go.renderer.material);
+		if (go.GetComponent<Renderer>() != null) {
+			mats.Add(go.GetComponent<Renderer>().material);
 		}
 		foreach( Transform t in go.transform ) {
 			mats.AddRange( GetAllMaterials( t.gameObject ) );
@@ -252,15 +252,33 @@ public class Utils : MonoBehaviour {
 		float res = (1-u)*vFrom + u*vTo;
 		return( res );
 	}
-	
-	
-	
-//============================ Bézier Curves ============================
-	
-	// While most Bézier curves are 3 or 4 points, it is possible to have
-	//   any number of points using this recursive function
-	// This uses the Utils.Lerp function because it needs to allow extrapolation
-	static public Vector3 Bezier( float u, List<Vector3> vList ) {
+
+
+
+    //============================ Bézier Curves ============================
+
+    // While most Bézier curves are 3 or 4 points, it is possible to have
+    //   any number of points using this recursive function
+    // This uses the Utils.Lerp function because it needs to allow extrapolation
+    static public Quaternion Bezier(float u, List<Quaternion> qList)
+    {
+        // If there is only one element in vList, return it
+        if (qList.Count == 1)
+        {
+            return (qList[0]);
+        }
+        // Otherwise, create vListR, which is all but the 0th element of vList
+        // e.g. if vList = [0,1,2,3,4] then vListR = [1,2,3,4]
+        List<Quaternion> qListR = qList.GetRange(1, qList.Count - 1);
+        // And create vListL, which is all but the last element of vList
+        // e.g. if vList = [0,1,2,3,4] then vListL = [0,1,2,3]
+        List<Quaternion> qListL = qList.GetRange(0, qList.Count - 1);
+        // The result is the Lerp of these two shorter Lists
+        Quaternion res = Quaternion.Lerp(Bezier(u, qListL), Bezier(u, qListR), u);
+        return (res);
+    }
+
+    static public Vector3 Bezier( float u, List<Vector3> vList ) {
 		// If there is only one element in vList, return it
 		if (vList.Count == 1) {
 			return( vList[0] );
